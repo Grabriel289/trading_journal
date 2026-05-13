@@ -64,20 +64,40 @@ ensure_brew_on_macos() {
             PM=brew
         fi
     fi
-    # Still no brew → can't proceed (Homebrew's own installer needs an
-    # interactive terminal, which `curl | bash` doesn't provide).
-    if [ -z "$PM" ]; then
-        printf '\n'
-        printf '\033[31m✖ Homebrew is required but not installed.\033[0m\n\n'
-        printf 'CryptoJournal needs Homebrew to install Python and Node.js.\n'
-        printf 'The Homebrew installer needs an interactive terminal so it\n'
-        printf 'cannot run inside curl|bash. Run this once in your Terminal:\n\n'
-        printf '\033[36m  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"\033[0m\n\n'
-        printf 'After Homebrew finishes, re-run the CryptoJournal installer:\n\n'
-        printf '\033[36m  curl -fsSL https://raw.githubusercontent.com/Grabriel289/trading_journal/main/install.sh | bash\033[0m\n\n'
-        printf 'If you prefer not to use Homebrew, install Python 3.10+ and Node 18+\n'
-        printf 'manually, then clone the repo and run ./dev.sh.\n\n'
+    if [ -n "$PM" ]; then
+        return 0
+    fi
+    # Brew is missing. Install it inline so the user only runs ONE command.
+    # The trick: when we're inside `curl | bash`, our own stdin is the curl
+    # pipe — so Homebrew's installer can't read "Press RETURN" or the sudo
+    # password from the user. We redirect its stdin to /dev/tty (the actual
+    # keyboard) so password prompts work even inside a piped install.
+    if [ ! -r /dev/tty ]; then
+        # No terminal available (running over SSH non-interactively, CI, etc.)
+        printf '\n\033[31m✖ Homebrew not found and no terminal available for interactive install.\033[0m\n'
+        printf 'Install Homebrew first, then re-run:\n\n'
+        printf '  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"\n'
+        printf '  curl -fsSL https://raw.githubusercontent.com/Grabriel289/trading_journal/main/install.sh | bash\n\n'
         exit 1
+    fi
+
+    step "Homebrew not found — installing it now"
+    printf '\033[33m   You will be asked for your Mac password (the same one you use to log in).\033[0m\n'
+    printf '\033[33m   Characters do not appear as you type — that is normal. Press Enter when done.\033[0m\n\n'
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" < /dev/tty
+
+    # After install, brew is on /opt/homebrew (Apple Silicon) or /usr/local (Intel).
+    if [ -x /opt/homebrew/bin/brew ]; then
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+    elif [ -x /usr/local/bin/brew ]; then
+        eval "$(/usr/local/bin/brew shellenv)"
+    fi
+
+    if command -v brew >/dev/null 2>&1; then
+        PM=brew
+        ok "Homebrew installed"
+    else
+        die "Homebrew install failed — please install manually and re-run the CryptoJournal installer"
     fi
 }
 

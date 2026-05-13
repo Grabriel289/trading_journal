@@ -130,18 +130,22 @@ crypto_journal/
 
 ## Troubleshooting
 
-### "Homebrew is required but not installed" (macOS)
-The installer needs Homebrew to install Python and Node.js, but Homebrew's own installer needs an interactive terminal which `curl | bash` doesn't provide. Run this once in **Terminal**, wait for it to finish, then re-run the CryptoJournal install:
+### macOS without Homebrew
+The installer will detect that Homebrew is missing and install it automatically — you'll be prompted for your Mac password mid-install. If you'd rather skip Homebrew entirely, install Python 3.10+ and Node 18+ manually (e.g. from python.org and nodejs.org), then:
 
 ```bash
-# Step 1: install Homebrew (paste in Terminal, follow its prompts)
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-# Step 2: re-run CryptoJournal installer
-curl -fsSL https://raw.githubusercontent.com/Grabriel289/trading_journal/main/install.sh | bash
+git clone https://github.com/Grabriel289/trading_journal.git
+cd trading_journal
+./dev.sh
 ```
 
-If you don't want Homebrew, install Python 3.10+ and Node 18+ manually (e.g. from python.org and nodejs.org), then clone the repo and run `./dev.sh`.
+### Installer fails with "Homebrew install failed"
+If something goes wrong during the auto-Homebrew step (network issue, bad sudo password, etc.), install Homebrew manually then re-run:
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+curl -fsSL https://raw.githubusercontent.com/Grabriel289/trading_journal/main/install.sh | bash
+```
 
 ### "port 5173 already in use"
 A previous Vite dev server is still running. Find and kill it:
