@@ -68,8 +68,11 @@ $reqHash = (Get-FileHash requirements.txt -Algorithm SHA1).Hash
 $existing = if (Test-Path $reqHashFile) { Get-Content $reqHashFile } else { '' }
 if ($existing -ne $reqHash) {
     Step 'Installing Python dependencies'
-    & $venvPip install --quiet --upgrade pip
-    & $venvPip install --quiet -r requirements.txt
+    # On Windows, pip cannot upgrade itself via pip.exe because the binary
+    # holds itself open. Use `python -m pip` instead so pip is loaded into
+    # the Python process and the .exe file is free to be replaced.
+    & $venvPy -m pip install --quiet --upgrade pip
+    & $venvPy -m pip install --quiet -r requirements.txt
     Set-Content -Path $reqHashFile -Value $reqHash
 }
 
