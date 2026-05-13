@@ -147,6 +147,12 @@ If something goes wrong during the auto-Homebrew step (network issue, bad sudo p
 curl -fsSL https://raw.githubusercontent.com/Grabriel289/trading_journal/main/install.sh | bash
 ```
 
+### Windows: "winget not found"
+`winget` (Windows Package Manager) ships with Windows 10 (2021+) and Windows 11. If you're missing it, open Microsoft Store, search for **"App Installer"**, install/update it, then re-run the installer.
+
+### Windows: "Python install completed but not on PATH"
+After winget installs Python or Node, PowerShell sometimes needs to be restarted before the new binary is visible. **Close PowerShell, open a fresh PowerShell window, and re-run the installer** — it will skip the already-installed steps and continue.
+
 ### "port 5173 already in use"
 A previous Vite dev server is still running. Find and kill it:
 
