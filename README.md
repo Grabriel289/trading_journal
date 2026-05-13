@@ -23,15 +23,24 @@ irm https://raw.githubusercontent.com/Grabriel289/trading_journal/main/install.p
 ```
 
 The installer:
-1. Checks for `git`, Python 3.10+, and Node 18+ (installs missing ones via Homebrew / apt / dnf / pacman)
-2. Clones the repo to `~/crypto_journal`
-3. Creates a Python venv + installs all deps
-4. Installs `npm` packages for the frontend
-5. Runs Alembic migrations to create the SQLite schema
-6. Starts the backend (port 8000) + frontend (port 5173)
-7. Opens [http://localhost:5173](http://localhost:5173) in your browser
+1. **Asks where to install** (default: `~/trading_journal` — press Enter to accept, or type your own path)
+2. Checks for `git`, Python 3.10+, and Node 18+ (installs missing ones via Homebrew / apt / dnf / pacman)
+3. Clones the repo into your chosen folder
+4. Creates a Python venv + installs all Python deps
+5. Installs `npm` packages for the frontend
+6. Runs Alembic migrations to create the SQLite schema
+7. Starts the backend (port 8000) + frontend (port 5173)
+8. Opens [http://localhost:5173](http://localhost:5173) in your browser
 
 Total time: ~2 minutes on a fresh machine.
+
+**To restart later**, `cd` into the folder you chose and run `./dev.sh` (Mac/Linux) or `.\dev.ps1` (Windows). The running banner reminds you of the exact path.
+
+**Non-interactive install** (CI, scripted): set `INSTALL_DIR=...` before piping:
+
+```bash
+INSTALL_DIR=~/my-folder curl -fsSL https://raw.githubusercontent.com/Grabriel289/trading_journal/main/install.sh | bash
+```
 
 ---
 
@@ -39,7 +48,7 @@ Total time: ~2 minutes on a fresh machine.
 
 ```bash
 git clone https://github.com/Grabriel289/trading_journal.git
-cd REPO
+cd trading_journal
 ./dev.sh          # macOS / Linux
 .\dev.ps1         # Windows
 ```

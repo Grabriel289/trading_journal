@@ -4,15 +4,34 @@
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/Grabriel289/trading_journal/main/install.sh | bash
 #
-# Env overrides:
+# Interactive: you'll be asked where to install (default: ~/trading_journal).
+#
+# Env overrides (skip prompts):
 #   REPO_URL=…    git clone source (default below)
-#   INSTALL_DIR=… target directory (default ~/crypto_journal)
+#   INSTALL_DIR=… target directory — skips the prompt
 #   START=false   skip auto-start; just install
 set -euo pipefail
 
 REPO_URL="${REPO_URL:-https://github.com/Grabriel289/trading_journal.git}"
-INSTALL_DIR="${INSTALL_DIR:-$HOME/crypto_journal}"
+DEFAULT_INSTALL_DIR="$HOME/trading_journal"
 START="${START:-true}"
+
+# Resolve INSTALL_DIR. If user set it via env, honor that. Otherwise prompt
+# them with a default — using /dev/tty so it works even inside `curl|bash`.
+if [ -n "${INSTALL_DIR:-}" ]; then
+    :
+elif [ -r /dev/tty ]; then
+    printf '\nWhere should CryptoJournal be installed?\n' > /dev/tty
+    printf 'Press Enter to accept [%s], or type a path: ' "$DEFAULT_INSTALL_DIR" > /dev/tty
+    read -r USER_INPUT < /dev/tty
+    INSTALL_DIR="${USER_INPUT:-$DEFAULT_INSTALL_DIR}"
+else
+    INSTALL_DIR="$DEFAULT_INSTALL_DIR"
+fi
+# Expand ~ if the user typed it literally
+INSTALL_DIR="${INSTALL_DIR/#\~/$HOME}"
+# Strip trailing slash for cleaner display
+INSTALL_DIR="${INSTALL_DIR%/}"
 
 bold()  { printf "\033[1m%s\033[0m\n" "$*"; }
 ok()    { printf "\033[32m✔\033[0m %s\n" "$*"; }

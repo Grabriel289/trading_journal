@@ -139,6 +139,7 @@ for _ in $(seq 1 30); do
     sleep 0.5
 done
 
+PROJECT_DIR="$(pwd)"
 cat <<EOF
 
 ==================================================
@@ -146,6 +147,9 @@ cat <<EOF
    Frontend: http://localhost:$FRONTEND_PORT
    Backend:  http://localhost:$BACKEND_PORT/docs
    Stop:     Ctrl+C
+
+ To restart later, in a new Terminal window:
+   cd $PROJECT_DIR && ./dev.sh
 ==================================================
 EOF
 

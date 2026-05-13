@@ -3,16 +3,33 @@
 # Usage:
 #   irm https://raw.githubusercontent.com/Grabriel289/trading_journal/main/install.ps1 | iex
 #
-# Env overrides (set before piping):
+# Interactive: you'll be asked where to install (default: $HOME\trading_journal).
+#
+# Env overrides (set before piping; skip prompts):
 #   $env:REPO_URL    git clone source (default below)
-#   $env:INSTALL_DIR target directory (default $HOME\crypto_journal)
+#   $env:INSTALL_DIR target directory — skips the prompt
 #   $env:START       'false' to skip auto-start
 
 $ErrorActionPreference = 'Stop'
 
-$RepoUrl    = if ($env:REPO_URL)    { $env:REPO_URL }    else { 'https://github.com/Grabriel289/trading_journal.git' }
-$InstallDir = if ($env:INSTALL_DIR) { $env:INSTALL_DIR } else { Join-Path $HOME 'crypto_journal' }
-$Start      = if ($env:START)       { $env:START }       else { 'true' }
+$RepoUrl = if ($env:REPO_URL) { $env:REPO_URL } else { 'https://github.com/Grabriel289/trading_journal.git' }
+$Start   = if ($env:START)    { $env:START }    else { 'true' }
+
+# Resolve install directory: env var → interactive prompt → default.
+$DefaultInstallDir = Join-Path $HOME 'trading_journal'
+if ($env:INSTALL_DIR) {
+    $InstallDir = $env:INSTALL_DIR
+} else {
+    Write-Host ''
+    Write-Host 'Where should CryptoJournal be installed?'
+    $userInput = Read-Host "Press Enter to accept [$DefaultInstallDir], or type a path"
+    if ([string]::IsNullOrWhiteSpace($userInput)) {
+        $InstallDir = $DefaultInstallDir
+    } else {
+        # Expand ~ to $HOME and resolve to an absolute path
+        $InstallDir = $userInput -replace '^~', $HOME
+    }
+}
 
 function Step($m) { Write-Host "→ $m" -ForegroundColor Cyan }
 function Ok($m)   { Write-Host "✔ $m" -ForegroundColor Green }
