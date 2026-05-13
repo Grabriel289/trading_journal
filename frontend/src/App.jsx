@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Route, Routes, Navigate } from 'react-router-dom';
+import Calc from './pages/Calc.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Deposits from './pages/Deposits.jsx';
 import ImportExport from './pages/ImportExport.jsx';
@@ -35,6 +36,7 @@ export default function App() {
         <NavLink to="/new-order">New Order</NavLink>
         <NavLink to="/trades">Trade History</NavLink>
         <NavLink to="/stats">Statistics</NavLink>
+        <NavLink to="/calc">Calculator</NavLink>
         <NavLink to="/performance">Performance</NavLink>
         <NavLink to="/deposits">Deposits</NavLink>
         <NavLink to="/import">Import/Export</NavLink>
@@ -49,6 +51,7 @@ export default function App() {
           <Route path="/new-order" element={<NewOrder />} />
           <Route path="/trades" element={<TradeHistory />} />
           <Route path="/stats" element={<Statistics />} />
+          <Route path="/calc" element={<Calc />} />
           <Route path="/performance" element={<Performance />} />
           <Route path="/deposits" element={<Deposits />} />
           <Route path="/import" element={<ImportExport />} />
