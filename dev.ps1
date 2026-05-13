@@ -105,19 +105,27 @@ if (PortInUse $FrontendPort) { Die "port $FrontendPort already in use." }
 
 # Apply Alembic migrations, with self-heal for half-built DBs from older
 # broken installs that stamped alembic_version with a now-deleted revision.
+# Notes for PowerShell 5: `& cmd 2>&1 | Out-String` under
+# $ErrorActionPreference = 'Stop' can throw on stderr text before we ever
+# reach the $LASTEXITCODE check. We avoid capturing stderr - just let
+# alembic print to console and read the exit code directly.
 Step 'Applying schema migrations (alembic upgrade head)'
-$alembicOut = & $venvPy -m alembic upgrade head 2>&1 | Out-String
-Write-Host $alembicOut
-if ($LASTEXITCODE -ne 0) {
-    if ($alembicOut -match "Can't locate revision") {
-        Write-Host '[!] Alembic state references a revision that no longer exists.' -ForegroundColor Yellow
-        Write-Host '    Wiping the half-built DB and retrying...' -ForegroundColor Yellow
-        Remove-Item -Force data\cryptojournal.db -ErrorAction SilentlyContinue
-        & $venvPy -m alembic upgrade head
-        if ($LASTEXITCODE -ne 0) { Die 'Migration still failing - see error above.' }
-    } else {
-        Die 'Migration failed - see error above.'
-    }
+$prevPref = $ErrorActionPreference
+$ErrorActionPreference = 'Continue'
+& $venvPy -m alembic upgrade head
+$migrationExit = $LASTEXITCODE
+$ErrorActionPreference = $prevPref
+
+if ($migrationExit -ne 0) {
+    Write-Host ''
+    Write-Host '[!] Migration failed. Most likely a half-built DB from an earlier' -ForegroundColor Yellow
+    Write-Host '    failed install. Wiping data\cryptojournal.db and retrying...' -ForegroundColor Yellow
+    Remove-Item -Force data\cryptojournal.db -ErrorAction SilentlyContinue
+    $ErrorActionPreference = 'Continue'
+    & $venvPy -m alembic upgrade head
+    $migrationExit = $LASTEXITCODE
+    $ErrorActionPreference = $prevPref
+    if ($migrationExit -ne 0) { Die 'Migration still failing - see error above.' }
 }
 
 Step "Starting backend on http://localhost:$BackendPort"
