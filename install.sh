@@ -53,13 +53,31 @@ pkg_install() {
 
 ensure_brew_on_macos() {
     [ "$OS" = macos ] || return 0
+    # If brew is already on the standard install paths but just not on PATH yet,
+    # source its shellenv so the rest of this script can find it.
     if [ -z "$PM" ]; then
-        warn "Homebrew not found. Installing Homebrew (you'll be prompted for sudo)."
-        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-        # Ensure brew is on PATH for this shell
-        if [ -x /opt/homebrew/bin/brew ]; then eval "$(/opt/homebrew/bin/brew shellenv)"; fi
-        if [ -x /usr/local/bin/brew ]; then eval "$(/usr/local/bin/brew shellenv)"; fi
-        PM=brew
+        if [ -x /opt/homebrew/bin/brew ]; then
+            eval "$(/opt/homebrew/bin/brew shellenv)"
+            PM=brew
+        elif [ -x /usr/local/bin/brew ]; then
+            eval "$(/usr/local/bin/brew shellenv)"
+            PM=brew
+        fi
+    fi
+    # Still no brew → can't proceed (Homebrew's own installer needs an
+    # interactive terminal, which `curl | bash` doesn't provide).
+    if [ -z "$PM" ]; then
+        printf '\n'
+        printf '\033[31m✖ Homebrew is required but not installed.\033[0m\n\n'
+        printf 'CryptoJournal needs Homebrew to install Python and Node.js.\n'
+        printf 'The Homebrew installer needs an interactive terminal so it\n'
+        printf 'cannot run inside curl|bash. Run this once in your Terminal:\n\n'
+        printf '\033[36m  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"\033[0m\n\n'
+        printf 'After Homebrew finishes, re-run the CryptoJournal installer:\n\n'
+        printf '\033[36m  curl -fsSL https://raw.githubusercontent.com/Grabriel289/trading_journal/main/install.sh | bash\033[0m\n\n'
+        printf 'If you prefer not to use Homebrew, install Python 3.10+ and Node 18+\n'
+        printf 'manually, then clone the repo and run ./dev.sh.\n\n'
+        exit 1
     fi
 }
 
