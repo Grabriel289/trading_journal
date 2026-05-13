@@ -98,7 +98,24 @@ fi
 # Apply any pending Alembic migrations before the server starts.
 # Fresh installs: this creates every table. Existing installs: no-op if at head.
 echo "→ Applying schema migrations (alembic upgrade head)"
-.venv/bin/alembic upgrade head
+if ! .venv/bin/alembic upgrade head 2>&1 | tee /tmp/cj-alembic-out.log; then
+    # If alembic_version points at a revision that no longer exists in the
+    # migrations folder (happens when a previous install half-failed before
+    # the squashed-migration fix), the safest recovery is to wipe the DB —
+    # there's no user data because tables were never fully created.
+    if grep -q "Can't locate revision" /tmp/cj-alembic-out.log; then
+        echo
+        echo "⚠ Alembic state references a revision that no longer exists." >&2
+        echo "  This usually means a previous install failed before completing." >&2
+        echo "  Wiping the half-built DB and retrying…" >&2
+        rm -f data/cryptojournal.db
+        .venv/bin/alembic upgrade head || { echo "Migration still failing — see error above." >&2; exit 1; }
+    else
+        echo "Migration failed — see error above." >&2
+        exit 1
+    fi
+fi
+rm -f /tmp/cj-alembic-out.log
 
 echo "→ Starting backend on http://localhost:$BACKEND_PORT"
 .venv/bin/uvicorn backend.main:app --host 127.0.0.1 --port "$BACKEND_PORT" --reload &
