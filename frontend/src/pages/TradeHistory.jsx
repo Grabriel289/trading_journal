@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../services/api.js';
 import { usePortfolios } from '../hooks/usePortfolios.js';
+import { fmtPrice } from '../utils/format.js';
 
 function fmtMoney(n) {
   if (n == null || n === '') return '—';
@@ -126,7 +127,7 @@ export default function TradeHistory() {
   }
 
   async function removeOrder(o) {
-    const label = `${o.side} ${fmtQty(o.quantity)} ${o.asset} @ ${fmtMoney(o.price)}`;
+    const label = `${o.side} ${fmtQty(o.quantity)} ${o.asset} @ ${fmtPrice(o.price)}`;
     if (!confirm(`Delete order?\n\n${label}\n\n${o.side === 'BUY' ? 'Will fail if it has linked sells.' : 'Linked buy will reopen by this quantity.'}`)) return;
     try {
       await api.deleteOrder(o.id);
@@ -201,8 +202,8 @@ export default function TradeHistory() {
                     <td><span className={`badge ${tagClass}`}>{tag}</span></td>
                     <td>{subAccountById.get(t.sub_account_id)?.name || '—'}</td>
                     <td>{fmtQty(t.quantity)}</td>
-                    <td>{fmtMoney(t.entry_price)}</td>
-                    <td>{fmtMoney(t.exit_price)}</td>
+                    <td>{fmtPrice(t.entry_price)}</td>
+                    <td>{fmtPrice(t.exit_price)}</td>
                     <td>{fmtDuration(t.holding_seconds)}</td>
                     <td className={pnlClass(t.gross_pnl)}>{fmtMoney(t.gross_pnl)}</td>
                     <td className={pnlClass(-Number(t.funding_pnl))}>{fmtMoney(t.funding_pnl)}</td>
@@ -242,7 +243,7 @@ export default function TradeHistory() {
                   <td className="muted" style={{ fontSize: 11 }}>{o.order_type || '—'}</td>
                   <td className="muted" style={{ fontSize: 11 }}>{o.execution_venue || '—'}</td>
                   <td>{fmtQty(o.quantity)}</td>
-                  <td>{fmtMoney(o.price)}</td>
+                  <td>{fmtPrice(o.price)}</td>
                   <td>{fmtMoney(o.total_value)}</td>
                   <td>{fmtMoney(o.fee)}{o.fee_currency ? <span className="muted" style={{ fontSize: 10 }}> {o.fee_currency}</span> : null}</td>
                   <td>

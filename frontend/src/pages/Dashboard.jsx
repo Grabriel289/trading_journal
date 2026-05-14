@@ -6,6 +6,7 @@ import EquityCurve from '../components/EquityCurve.jsx';
 import DrawdownChart from '../components/DrawdownChart.jsx';
 import PriceStatusBadge from '../components/PriceStatusBadge.jsx';
 import AssetAllocation from '../components/AssetAllocation.jsx';
+import { fmtPrice } from '../utils/format.js';
 
 const RANGES = ['1W', '1M', '3M', '1Y', 'ALL'];
 
@@ -279,9 +280,9 @@ export default function Dashboard() {
                           <td style={{ fontWeight: 500 }}>{pos.asset}</td>
                           <td className={pos.direction ? cls : 'muted'}>{tag}</td>
                           <td>{Number(pos.quantity).toLocaleString(undefined, { maximumFractionDigits: 8 })}</td>
-                          <td>{fmtMoney(pos.entry_price)}</td>
+                          <td>{fmtPrice(pos.entry_price)}</td>
                           <td>
-                            {fmtMoney(pos.current_price)}{' '}
+                            {fmtPrice(pos.current_price)}{' '}
                             {pos.price_status && (
                               <PriceStatusBadge status={pos.price_status} source={pos.price_source} />
                             )}

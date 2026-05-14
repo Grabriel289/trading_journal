@@ -1,6 +1,9 @@
 import { useMemo, useState } from 'react';
+import { fmtPrice } from '../utils/format.js';
 
 // ── Formatters ───────────────────────────────────────────────────────
+// fmtMoney = USD aggregates (capital, risk $, margin) — fixed 2 dp.
+// fmtPrice (imported) = per-unit token prices — adaptive precision.
 const fmtMoney = (n, digits = 2) => {
   if (n == null || !isFinite(n)) return '—';
   const x = Number(n);
@@ -153,7 +156,7 @@ function calculatePosition({
     warnings.push({
       level: 'red',
       message:
-        `Stop loss (${fmtMoney(slPrice)}) is within 5% of liquidation (${fmtMoney(liqPrice)}). ` +
+        `Stop loss (${fmtPrice(slPrice)}) is within 5% of liquidation (${fmtPrice(liqPrice)}). ` +
         `Slippage or a single wick could liquidate you before SL triggers. ` +
         `Reduce leverage or widen stop loss.`,
     });
@@ -218,13 +221,13 @@ function ResultCards({ r }) {
         aux={`${(r.notional / r.capital * 100).toFixed(0)}% of capital`} />
       <ResultCard label="Margin Required" value={fmtMoney(r.requiredMargin)}
         aux={`${(r.requiredMargin / r.capital * 100).toFixed(0)}% of capital`} />
-      <ResultCard label="Entry Price" value={fmtMoney(r.entryPrice)} />
-      <ResultCard label="Stop Loss Price" value={fmtMoney(r.slPrice)} cls="red" />
+      <ResultCard label="Entry Price" value={fmtPrice(r.entryPrice)} />
+      <ResultCard label="Stop Loss Price" value={fmtPrice(r.slPrice)} cls="red" />
       <ResultCard label="SL Distance"
-        value={`${fmtPct(r.slDistancePct)} / ${fmtMoney((r.slDistancePct / 100) * r.entryPrice)}`}
+        value={`${fmtPct(r.slDistancePct)} / ${fmtPrice((r.slDistancePct / 100) * r.entryPrice)}`}
         cls="red" />
       <ResultCard label="Liquidation Price"
-        value={r.liqPrice != null ? fmtMoney(r.liqPrice) : 'N/A'}
+        value={r.liqPrice != null ? fmtPrice(r.liqPrice) : 'N/A'}
         cls={r.distToLiqPct != null && r.distToLiqPct < 5 ? 'red' : ''}
         aux={r.distToLiqPct != null ? `${r.distToLiqPct.toFixed(1)}% away` : '(1× = no liq)'} />
     </div>
@@ -246,27 +249,27 @@ function BreakdownTable({ r }) {
         <tr><td>Max Buying Power</td><td style={{ textAlign: 'right' }}>{fmtMoney(r.maxBuyingPower)} <span className="muted" style={{ fontSize: 11 }}>(constraint only)</span></td></tr>
         <tr><td>Notional Value</td><td style={{ textAlign: 'right' }}>{fmtMoney(r.notional)} ({(r.notional / r.capital * 100).toFixed(0)}% of capital)</td></tr>
         <tr><td>Position Size</td><td style={{ textAlign: 'right' }}>{fmtQty(r.positionSize)} {r.asset || ''}</td></tr>
-        <tr><td>Entry Price</td><td style={{ textAlign: 'right' }}>{fmtMoney(r.entryPrice)}</td></tr>
-        <tr><td>Stop Loss Price</td><td style={{ textAlign: 'right' }} className="red">{fmtMoney(r.slPrice)} ({r.direction})</td></tr>
-        <tr><td>SL Distance</td><td style={{ textAlign: 'right' }}>{fmtPct(r.slDistancePct)} ({fmtMoney((r.slDistancePct / 100) * r.entryPrice)} per {r.asset || 'unit'})</td></tr>
+        <tr><td>Entry Price</td><td style={{ textAlign: 'right' }}>{fmtPrice(r.entryPrice)}</td></tr>
+        <tr><td>Stop Loss Price</td><td style={{ textAlign: 'right' }} className="red">{fmtPrice(r.slPrice)} ({r.direction})</td></tr>
+        <tr><td>SL Distance</td><td style={{ textAlign: 'right' }}>{fmtPct(r.slDistancePct)} ({fmtPrice((r.slDistancePct / 100) * r.entryPrice)} per {r.asset || 'unit'})</td></tr>
         <tr><td><strong>Dollar at Risk</strong></td><td style={{ textAlign: 'right' }} className="red"><strong>{fmtMoney(r.actualRisk)}</strong></td></tr>
-        <tr><td>Liquidation Price (est.)</td><td style={{ textAlign: 'right' }}>{r.liqPrice != null ? fmtMoney(r.liqPrice) : 'N/A'}</td></tr>
+        <tr><td>Liquidation Price (est.)</td><td style={{ textAlign: 'right' }}>{r.liqPrice != null ? fmtPrice(r.liqPrice) : 'N/A'}</td></tr>
         <tr><td>Distance to Liquidation</td><td style={{ textAlign: 'right' }} className={distToLiqCls}>{r.distToLiqPct != null ? fmtPct(r.distToLiqPct) : '—'}</td></tr>
         <tr><td colSpan={2} className="muted" style={{ borderTop: '1px solid var(--border-card)', paddingTop: 6, fontSize: 11 }}>Risk / Reward projections</td></tr>
         {r.rrTargets.map((rr) => (
           <tr key={rr.ratio}>
             <td>R:R 1:{rr.ratio}</td>
             <td style={{ textAlign: 'right' }} className="green">
-              TP {fmtMoney(rr.tpPrice)} → profit {fmtMoney(rr.profit)}
+              TP {fmtPrice(rr.tpPrice)} → profit {fmtMoney(rr.profit)}
             </td>
           </tr>
         ))}
         {r.atrValue != null && (
           <>
             <tr><td colSpan={2} className="muted" style={{ borderTop: '1px solid var(--border-card)', paddingTop: 6, fontSize: 11 }}>ATR reference</td></tr>
-            <tr><td>ATR value (manual)</td><td style={{ textAlign: 'right' }}>{fmtMoney(r.atrValue)} ({fmtPct(r.atrAsPct)})</td></tr>
+            <tr><td>ATR value (manual)</td><td style={{ textAlign: 'right' }}>{fmtPrice(r.atrValue)} ({fmtPct(r.atrAsPct)})</td></tr>
             {r.slDistancePct && r.atrMultiplier && (
-              <tr><td>ATR × Multiplier</td><td style={{ textAlign: 'right' }}>{fmtMoney(r.atrValue)} × {r.atrMultiplier} = {fmtMoney(r.atrValue * r.atrMultiplier)}</td></tr>
+              <tr><td>ATR × Multiplier</td><td style={{ textAlign: 'right' }}>{fmtPrice(r.atrValue)} × {r.atrMultiplier} = {fmtPrice(r.atrValue * r.atrMultiplier)}</td></tr>
             )}
           </>
         )}
@@ -302,8 +305,8 @@ function LeverageTable({ r }) {
             <td style={{ textAlign: 'right' }} className={slCellClass(row.slDistPct)}>
               {fmtPct(row.slDistPct, row.slDistPct < 1 ? 3 : 2)}
             </td>
-            <td style={{ textAlign: 'right' }}>{fmtMoney(row.slPrice)}</td>
-            <td style={{ textAlign: 'right' }}>{row.liqPrice != null ? fmtMoney(row.liqPrice) : 'N/A'}</td>
+            <td style={{ textAlign: 'right' }}>{fmtPrice(row.slPrice)}</td>
+            <td style={{ textAlign: 'right' }}>{row.liqPrice != null ? fmtPrice(row.liqPrice) : 'N/A'}</td>
           </tr>
         ))}
       </tbody>

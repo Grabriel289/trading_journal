@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../services/api.js';
 import PriceStatusBadge from '../components/PriceStatusBadge.jsx';
+import { fmtPrice } from '../utils/format.js';
 
 function setBulkDraftField(setter, symbol, field, value) {
   setter((d) => ({ ...d, [symbol]: { ...(d[symbol] || {}), [field]: value } }));
@@ -12,11 +13,6 @@ const SOURCE_LABEL = {
   COINGECKO: 'CoinGecko',
   MANUAL: 'Manual',
 };
-
-function fmtPrice(p) {
-  if (p == null) return '—';
-  return '$' + Number(p).toLocaleString(undefined, { maximumFractionDigits: 8 });
-}
 
 function timeAgo(iso) {
   if (!iso) return '';

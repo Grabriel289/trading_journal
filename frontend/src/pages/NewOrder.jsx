@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../services/api.js';
 import { usePortfolios } from '../hooks/usePortfolios.js';
+import { fmtPrice } from '../utils/format.js';
 
 function fmt(n, digits = 2) {
   if (n == null || n === '' || Number.isNaN(Number(n))) return '—';
@@ -211,7 +212,7 @@ export default function NewOrder() {
         }
         const order = await api.createBuy(body);
         const tag = isFutures ? ` (${direction} ${leverage}x)` : '';
-        setSuccess(`BUY${tag}: ${fmt(order.quantity, 8)} ${order.asset} @ $${fmt(order.price)}`);
+        setSuccess(`BUY${tag}: ${fmt(order.quantity, 8)} ${order.asset} @ ${fmtPrice(order.price)}`);
       } else {
         if (!linkedBuyId) throw new Error('Pick a buy order to sell from');
         const body = {
@@ -223,7 +224,7 @@ export default function NewOrder() {
         };
         if (usePriceMode === 'manual') body.price = manualPrice;
         const order = await api.createSell(body);
-        setSuccess(`SELL: ${fmt(order.quantity, 8)} ${order.asset} @ $${fmt(order.price)}`);
+        setSuccess(`SELL: ${fmt(order.quantity, 8)} ${order.asset} @ ${fmtPrice(order.price)}`);
       }
       setInputAmount('');
       setNote('');
@@ -306,7 +307,7 @@ export default function NewOrder() {
                     const tag = b.direction ? ` ${b.direction} ${b.leverage}x` : '';
                     return (
                       <option key={b.id} value={b.id}>
-                        {b.asset}{tag} — {fmt(b.remaining_quantity, 8)} @ ${fmt(b.price)}
+                        {b.asset}{tag} — {fmt(b.remaining_quantity, 8)} @ {fmtPrice(b.price)}
                         {' '}({new Date(b.datetime).toLocaleDateString()})
                       </option>
                     );
@@ -390,7 +391,7 @@ export default function NewOrder() {
           {usePriceMode === 'live' && priceAsset && (
             <p className="muted" style={{ marginTop: -6 }}>
               {priceError ? <span className="red">price error: {priceError}</span> : (
-                livePrice ? `Live ${priceAsset}USDT: $${fmt(livePrice)}` : 'Fetching live price…'
+                livePrice ? `Live ${priceAsset}USDT: ${fmtPrice(livePrice)}` : 'Fetching live price…'
               )}
             </p>
           )}
